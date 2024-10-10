@@ -19,7 +19,6 @@ You can install this package using the `bun` package manager:
 bun add @ubiquity/rpc-handler
 ```
 
-_Note: Replace `@ubiquity/rpc-handler` with the actual package name when publishing to a package registry._
 
 ## Usage
 
