@@ -1,4 +1,3 @@
-
 # `@ubiquity/rpc-handler`
 
 `RpcHandler` is a TypeScript class designed to efficiently manage RPC (Remote Procedure Call) endpoints across various blockchain networks. It intelligently selects the fastest available RPC endpoint for a given chain, caches endpoints for performance optimization, and gracefully handles request failures by retrying with alternative endpoints.
@@ -28,11 +27,7 @@ const chainDataArray: ChainData[] = [
   {
     name: "Ethereum Mainnet",
     chain: "ETH",
-    rpc: [
-      "https://mainnet.infura.io/v3/YOUR-PROJECT-ID",
-      "https://eth-mainnet.alchemyapi.io/v2/YOUR-API-KEY",
-      "https://cloudflare-eth.com"
-    ],
+    rpc: ["https://mainnet.infura.io/v3/YOUR-PROJECT-ID", "https://eth-mainnet.alchemyapi.io/v2/YOUR-API-KEY", "https://cloudflare-eth.com"],
     chainId: 1,
     // Additional optional ChainData properties
   },
@@ -179,3 +174,15 @@ We welcome contributions! If you have suggestions or encounter issues, please op
 ## License
 
 This project is licensed under the MIT License.
+
+### Remarks
+
+In the UI you can get my WXDAI balance on Gnosis Chain using the following values (network id, method, params):
+
+```
+100
+
+eth_call
+
+[     {         "to": "0xe91D153E0b41518A2Ce8Dd3D7944Fa863463a97d",         "data": "0x70a082310000000000000000000000004007ce2083c7f3e18097aeb3a39bb8ec149a341d"     },     "latest" ]
+```
