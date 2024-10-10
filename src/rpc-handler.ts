@@ -151,7 +151,7 @@ export class RpcHandler {
     const chain = this._chainData.find((c) => c.networkId === networkId);
     if (!chain || !chain.rpc || chain.rpc.length === 0) {
       // If no RPC found, search again in the entire chainData
-      const allRpcs = this._chainData.flatMap(c => c.rpc);
+      const allRpcs = this._chainData.flatMap((c) => c.rpc);
       if (allRpcs.length === 0) {
         throw new Error(`No RPC endpoints found for any network`);
       }
@@ -178,42 +178,49 @@ export class RpcHandler {
     try {
       return await this._sendRpcRequest(rpc, payload, 10000);
     } catch {
-      // Remove the failed RPC from cache and try others
-      delete this._fastestRpcs[networkId];
-      this._saveCache();
-
-      const chain = this._chainData.find((c) => c.networkId === networkId);
-      if (!chain || !chain.rpc || chain.rpc.length === 0) {
-        // If no RPC found, search again in the entire chainData
-        const allRpcs = this._chainData.flatMap(c => c.rpc);
-        if (allRpcs.length === 0) {
-          throw new Error(`No RPC endpoints found for any network`);
-        }
-        for (const alternativeRpc of allRpcs) {
-          if (alternativeRpc === rpc) continue;
-          try {
-            const response = await this._sendRpcRequest(alternativeRpc, payload, 10000);
-            this._fastestRpcs[networkId] = alternativeRpc;
-            this._saveCache();
-            return response;
-          } catch {
-            continue;
-          }
-        }
-      } else {
-        for (const alternativeRpc of chain.rpc) {
-          if (alternativeRpc === rpc) continue;
-          try {
-            const response = await this._sendRpcRequest(alternativeRpc, payload, 10000);
-            this._fastestRpcs[networkId] = alternativeRpc;
-            this._saveCache();
-            return response;
-          } catch {
-            continue;
-          }
-        }
-      }
-      throw new Error("All RPC endpoints failed.");
+      return await this._handleFailedRequest(networkId, rpc, payload);
     }
+  }
+
+  private async _handleFailedRequest(networkId: number, failedRpc: string, payload: Record<string, unknown>): Promise<Record<string, unknown>> {
+    this._removeFailedRpcFromCache(networkId);
+    const rpcs = this._getRpcsForNetwork(networkId);
+    return await this._tryAlternativeRpcs(rpcs, failedRpc, networkId, payload);
+  }
+
+  private _removeFailedRpcFromCache(networkId: number): void {
+    delete this._fastestRpcs[networkId];
+    this._saveCache();
+  }
+
+  private _getRpcsForNetwork(networkId: number): string[] {
+    const chain = this._chainData.find((c) => c.networkId === networkId);
+    if (chain?.rpc?.length) {
+      return chain.rpc;
+    }
+    return this._chainData.flatMap((c) => c.rpc);
+  }
+
+  private async _tryAlternativeRpcs(rpcs: string[], failedRpc: string, networkId: number, payload: Record<string, unknown>): Promise<Record<string, unknown>> {
+    if (rpcs.length === 0) {
+      throw new Error(`No RPC endpoints found for any network`);
+    }
+
+    for (const alternativeRpc of rpcs) {
+      if (alternativeRpc === failedRpc) continue;
+      try {
+        const response = await this._sendRpcRequest(alternativeRpc, payload, 10000);
+        this._updateFastestRpc(networkId, alternativeRpc);
+        return response;
+      } catch {
+        continue;
+      }
+    }
+    throw new Error("All RPC endpoints failed.");
+  }
+
+  private _updateFastestRpc(networkId: number, rpc: string): void {
+    this._fastestRpcs[networkId] = rpc;
+    this._saveCache();
   }
 }
