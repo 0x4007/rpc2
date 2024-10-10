@@ -1,45 +1,48 @@
 
-
 # `@ubiquity/rpc-handler`
 
-`RpcHandler` is a TypeScript class designed to manage RPC (Remote Procedure Call) endpoints for different blockchain networks. It intelligently selects the fastest available RPC endpoint for a given chain and handles request failures gracefully by retrying with alternative endpoints.
+`RpcHandler` is a TypeScript class designed to efficiently manage RPC (Remote Procedure Call) endpoints across various blockchain networks. It intelligently selects the fastest available RPC endpoint for a given chain, caches endpoints for performance optimization, and gracefully handles request failures by retrying with alternative endpoints.
 
 ## Features
 
-- **Dynamic RPC Selection**: Automatically finds the fastest RPC endpoint for a specified blockchain network.
-- **Caching**: Caches the fastest RPC endpoints to improve performance on subsequent requests.
-- **Graceful Failover**: Handles failed requests by trying alternative RPC endpoints.
-- **Environment Compatibility**: Supports both browser and Node.js environments with appropriate storage mechanisms.
+- **Dynamic RPC Selection**: Automatically identifies and uses the fastest RPC endpoint for each blockchain network.
+- **Caching Mechanism**: Stores the fastest RPC endpoints to enhance performance on subsequent requests.
+- **Failover Handling**: On request failure, seamlessly retries with alternative endpoints.
+- **Cross-Environment Support**: Compatible with both browser and Node.js environments, using appropriate storage mechanisms.
 
 ## Installation
 
-You can install this package using the `bun` package manager:
+Install the package using the `bun` package manager:
 
 ```bash
 bun add @ubiquity/rpc-handler
 ```
 
-
 ## Usage
 
 ```typescript
-import { RpcHandler } from "@ubiquity/rpc-handler";
+import { RpcHandler, ChainData } from "@ubiquity/rpc-handler";
 
-// Assuming you have chain data available
+// Define your chain data
 const chainDataArray: ChainData[] = [
   {
     name: "Ethereum Mainnet",
     chain: "ETH",
-    rpc: ["https://mainnet.infura.io/v3/YOUR-PROJECT-ID", "https://eth-mainnet.alchemyapi.io/v2/YOUR-API-KEY", "https://cloudflare-eth.com"],
+    rpc: [
+      "https://mainnet.infura.io/v3/YOUR-PROJECT-ID",
+      "https://eth-mainnet.alchemyapi.io/v2/YOUR-API-KEY",
+      "https://cloudflare-eth.com"
+    ],
     chainId: 1,
-    // ... other ChainData properties
+    // Additional optional ChainData properties
   },
-  // Add other chains as needed
+  // Include other chains as needed
 ];
 
+// Initialize the RpcHandler
 const rpcHandler = new RpcHandler(chainDataArray);
 
-// Sending an RPC request
+// Define your RPC request payload
 const payload = {
   jsonrpc: "2.0",
   method: "eth_blockNumber",
@@ -47,6 +50,7 @@ const payload = {
   id: 1,
 };
 
+// Send the RPC request
 rpcHandler
   .sendRequest(1, payload)
   .then((response) => {
@@ -67,18 +71,23 @@ rpcHandler
 new RpcHandler(chainData: ChainData[])
 ```
 
-- `chainData`: An array of `ChainData` objects representing different blockchain networks and their RPC endpoints.
+- **Parameters**:
+  - `chainData`: An array of `ChainData` objects representing different blockchain networks and their RPC endpoints.
 
 #### Methods
 
-##### `sendRequest(chainId: number, payload: Record<string, unknown>): Promise<Record<string, unknown>>`
+##### `sendRequest`
+
+```typescript
+sendRequest(chainId: number, payload: Record<string, unknown>): Promise<Record<string, unknown>>
+```
 
 Sends an RPC request to the fastest available endpoint for the specified chain ID.
 
-- `chainId`: The ID of the blockchain network.
-- `payload`: The RPC request payload.
-
-Returns a promise that resolves with the RPC response.
+- **Parameters**:
+  - `chainId`: The ID of the blockchain network.
+  - `payload`: The RPC request payload as an object.
+- **Returns**: A promise that resolves with the RPC response.
 
 ## Interfaces
 
@@ -92,7 +101,6 @@ interface ChainData {
   chain: string;
   rpc: string[];
   chainId: number;
-  // Optional properties
   icon?: string;
   features?: Feature[];
   faucets?: string[];
@@ -159,14 +167,14 @@ interface ParentChain {
 
 ## Storage Mechanisms
 
-The `RpcHandler` class uses a storage mechanism to cache the fastest RPC endpoints. It supports both browser and Node.js environments:
+The `RpcHandler` class uses a storage mechanism to cache the fastest RPC endpoints, optimizing performance for subsequent requests. It supports both browser and Node.js environments:
 
-- **Browser**: Uses `localStorage` via the `BrowserStorage` class.
-- **Node.js**: Uses an in-memory storage via the `NodeStorage` class.
+- **Browser**: Utilizes `localStorage` through the `BrowserStorage` class.
+- **Node.js**: Employs an in-memory storage via the `NodeStorage` class.
 
 ## Contributing
 
-Contributions are welcome! Please open an issue or submit a pull request with your changes.
+We welcome contributions! If you have suggestions or encounter issues, please open an issue or submit a pull request.
 
 ## License
 

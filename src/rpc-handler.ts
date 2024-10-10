@@ -117,8 +117,6 @@ export class RpcHandler {
     }
   }
 
-  // ...
-
   private async _findFastestRpc(rpcs: string[]): Promise<string> {
     const latencyPromises = rpcs.map((rpc) => this._checkLatency(rpc));
     const results = await Promise.all(latencyPromises);
