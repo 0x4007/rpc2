@@ -94,43 +94,30 @@ export class RpcHandler {
   private _saveCache(): void {
     this._storage.setItem("fastestRpcs", JSON.stringify(this._fastestRpcs));
   }
+
   private async _checkLatency(rpc: string): Promise<{ rpc: string; latency: number }> {
     const start = Date.now();
 
-    // Prepare a test eth_call to check UBQ token balance
-    const methodId = "0x70a08231"; // `balanceOf(address)` method ID
-    const address = "0xefC0e701A824943b469a694aC564Aa1efF7Ab7dd"; // Your address
-    const addressWithoutPrefix = address.replace(/^0x/, "");
-    const paddedAddress = addressWithoutPrefix.padStart(64, "0");
-    const data = methodId + paddedAddress;
-
     const testPayload = {
       jsonrpc: "2.0",
-      method: "eth_call",
-      params: [
-        {
-          to: "0x4e38d89362f7e5db0096ce44ebd021c3962aa9a0", // UBQ token address
-          data: data,
-        },
-        "latest",
-      ],
+      method: "eth_getCode",
+      params: ["0x000000000022D473030F116dDEE9F6B43aC78BA3", "latest"],
       id: this._getNextPayloadId(),
     };
 
     try {
       const response = await this._sendRpcRequest(rpc, testPayload, 10000);
-      if (response && response.result !== undefined) {
-        const balance = BigInt(response.result);
-        if (balance > 0n) {
-          const latency = Date.now() - start;
-          return { rpc, latency };
-        }
+      if (response && response.result && response.result !== "0x") {
+        const latency = Date.now() - start;
+        return { rpc, latency };
       }
       return { rpc, latency: -1 };
     } catch {
       return { rpc, latency: -1 };
     }
   }
+
+  // ...
 
   private async _findFastestRpc(rpcs: string[]): Promise<string> {
     const latencyPromises = rpcs.map((rpc) => this._checkLatency(rpc));
