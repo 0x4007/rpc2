@@ -2,7 +2,7 @@ import esbuild, { BuildOptions } from "esbuild";
 
 const ENTRY_POINTS = {
   typescript: ["static/main.ts"],
-  // css: ["static/style.css"],
+  css: ["static/style.css"],
 };
 
 const DATA_URL_LOADERS = [".png", ".woff", ".woff2", ".eot", ".ttf", ".svg"];

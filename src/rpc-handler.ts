@@ -97,7 +97,7 @@ export class RpcHandler {
   private async _checkLatency(rpc: string): Promise<{ rpc: string; latency: number }> {
     const start = Date.now();
     try {
-      const response = await this._sendRpcRequest(rpc, { jsonrpc: "2.0", method: "eth_blockNumber", params: [], id: 1 }, 1000);
+      const response = await this._sendRpcRequest(rpc, { jsonrpc: "2.0", method: "eth_blockNumber", params: [], id: 1 }, 10000);
       if (response && response.result) {
         const latency = Date.now() - start;
         return { rpc, latency };
@@ -168,7 +168,7 @@ export class RpcHandler {
 
     const rpc = await this._getFastestRpc(networkId);
     try {
-      return await this._sendRpcRequest(rpc, payload, 1000);
+      return await this._sendRpcRequest(rpc, payload, 10000);
     } catch {
       // Remove the failed RPC from cache and try others
       delete this._fastestRpcs[networkId];
@@ -182,7 +182,7 @@ export class RpcHandler {
       for (const alternativeRpc of chain.rpc) {
         if (alternativeRpc === rpc) continue;
         try {
-          const response = await this._sendRpcRequest(alternativeRpc, payload, 1000);
+          const response = await this._sendRpcRequest(alternativeRpc, payload, 10000);
           this._fastestRpcs[networkId] = alternativeRpc;
           this._saveCache();
           return response;
