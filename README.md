@@ -177,7 +177,7 @@ This project is licensed under the MIT License.
 
 # Remarks
 
-In the UI you can get my WXDAI balance on Gnosis Chain using the following values (network id, method, params):
+In the UI you can get my WXDAI balance on Gnosis Chain using the following values (network id, method, params). It was a quick experiment so don't mind the incorrect prefix regarding block number:
 
 ```
 100
