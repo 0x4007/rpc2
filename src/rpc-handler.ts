@@ -94,26 +94,39 @@ export class RpcHandler {
   private _saveCache(): void {
     this._storage.setItem("fastestRpcs", JSON.stringify(this._fastestRpcs));
   }
-
   private async _checkLatency(rpc: string): Promise<{ rpc: string; latency: number }> {
     const start = Date.now();
-    try {
-      const response = await this._sendRpcRequest(
-        rpc,
+
+    // Prepare a test eth_call to check UBQ token balance
+    const methodId = "0x70a08231"; // `balanceOf(address)` method ID
+    const address = "0xefC0e701A824943b469a694aC564Aa1efF7Ab7dd"; // Your address
+    const addressWithoutPrefix = address.replace(/^0x/, "");
+    const paddedAddress = addressWithoutPrefix.padStart(64, "0");
+    const data = methodId + paddedAddress;
+
+    const testPayload = {
+      jsonrpc: "2.0",
+      method: "eth_call",
+      params: [
         {
-          jsonrpc: "2.0",
-          method: "eth_blockNumber",
-          params: [],
-          id: this._getNextPayloadId(),
+          to: "0x4e38d89362f7e5db0096ce44ebd021c3962aa9a0", // UBQ token address
+          data: data,
         },
-        10000
-      );
-      if (response && response.result) {
-        const latency = Date.now() - start;
-        return { rpc, latency };
-      } else {
-        return { rpc, latency: -1 };
+        "latest",
+      ],
+      id: this._getNextPayloadId(),
+    };
+
+    try {
+      const response = await this._sendRpcRequest(rpc, testPayload, 10000);
+      if (response && response.result !== undefined) {
+        const balance = BigInt(response.result);
+        if (balance > 0n) {
+          const latency = Date.now() - start;
+          return { rpc, latency };
+        }
       }
+      return { rpc, latency: -1 };
     } catch {
       return { rpc, latency: -1 };
     }
@@ -139,16 +152,30 @@ export class RpcHandler {
     const id = setTimeout(() => controller.abort(), timeout);
 
     try {
-      const response = await fetch(rpc, {
+      const fetchOptions: RequestInit = {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
         signal: controller.signal,
-      });
+      };
+
+      const response = await fetch(rpc, fetchOptions);
       clearTimeout(id);
-      return await response.json();
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error(`HTTP error: ${response.status} ${response.statusText}`, errorText);
+        throw new Error(`HTTP error: ${response.status} ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      if (data.error) {
+        console.error("RPC Error:", data.error);
+      }
+      return data;
     } catch (error) {
       clearTimeout(id);
+      console.error(`Error during RPC request to ${rpc}:`, error);
       throw error;
     }
   }
@@ -184,6 +211,10 @@ export class RpcHandler {
     }
 
     const rpc = await this._getFastestRpc(chainId);
+
+    // Log the selected RPC endpoint
+    console.log(`Using RPC endpoint: ${rpc}`);
+
     const fullPayload = { ...payload, id: this._getNextPayloadId(), jsonrpc: "2.0" };
     try {
       return await this._sendRpcRequest(rpc, fullPayload, 10000);
@@ -205,10 +236,10 @@ export class RpcHandler {
 
   private _getRpcsForChain(chainId: number): string[] {
     const chain = this._chainData.find((c) => c.chainId === chainId);
-    if (chain?.rpc?.length) {
-      return chain.rpc;
-    }
-    return this._chainData.flatMap((c) => c.rpc);
+    const allRpcs = chain?.rpc?.length ? chain.rpc : this._chainData.flatMap((c) => c.rpc);
+
+    // Filter out WebSocket URLs
+    return allRpcs.filter((rpc) => !rpc.startsWith("ws://") && !rpc.startsWith("wss://"));
   }
 
   private async _tryAlternativeRpcs(rpcs: string[], failedRpc: string, chainId: number, payload: Record<string, unknown>): Promise<Record<string, unknown>> {
