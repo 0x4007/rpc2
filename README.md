@@ -1,70 +1,174 @@
-# `@ubiquity/ts-template`
+`@ubiquity/rpc-handler`
 
-This template repository includes support for the following:
+# RpcHandler
 
-- TypeScript
-- Environment Variables
-- Conventional Commits
-- Automatic deployment to Cloudflare Pages
+`RpcHandler` is a TypeScript class designed to manage RPC (Remote Procedure Call) endpoints for different blockchain networks. It intelligently selects the fastest available RPC endpoint for a given chain and handles request failures gracefully by retrying with alternative endpoints.
 
-## Testing
+## Features
 
-### Cypress
+- **Dynamic RPC Selection**: Automatically finds the fastest RPC endpoint for a specified blockchain network.
+- **Caching**: Caches the fastest RPC endpoints to improve performance on subsequent requests.
+- **Graceful Failover**: Handles failed requests by trying alternative RPC endpoints.
+- **Environment Compatibility**: Supports both browser and Node.js environments with appropriate storage mechanisms.
 
-To test with Cypress Studio UI, run
+## Installation
 
-```shell
-yarn cy:open
-```
-
-Otherwise, to simply run the tests through the console, run
-
-```shell
-yarn cy:run
-```
-
-### Jest
-
-To start Jest tests, run
-
-```shell
-yarn test
-```
-
-## Sync any repository to latest `ts-template`
-
-A bash function that can do this for you:
+You can install this package using the `bun` package manager:
 
 ```bash
-sync-branch-to-template() {
-  local branch_name
-  branch_name=$(git rev-parse --abbrev-ref HEAD)
-  local original_remote
-  original_remote=$(git remote show | head -n 1)
+bun add @ubiquity/rpc-handler
+```
 
-  # Add the template remote
-  git remote add template https://github.com/ubiquity/ts-template
+_Note: Replace `@ubiquity/rpc-handler` with the actual package name when publishing to a package registry._
 
-  # Fetch from the template remote
-  git fetch template development
+## Usage
 
-  if [ "$branch_name" != "HEAD" ]; then
-    # Create a new branch and switch to it
-    git checkout -b "chore/merge-${branch_name}-template"
+```typescript
+import { RpcHandler } from "@ubiquity/rpc-handler";
 
-    # Merge the changes from the template remote
-    git merge template/development --allow-unrelated-histories
+// Assuming you have chain data available
+const chainDataArray: ChainData[] = [
+  {
+    name: "Ethereum Mainnet",
+    chain: "ETH",
+    rpc: ["https://mainnet.infura.io/v3/YOUR-PROJECT-ID", "https://eth-mainnet.alchemyapi.io/v2/YOUR-API-KEY", "https://cloudflare-eth.com"],
+    chainId: 1,
+    // ... other ChainData properties
+  },
+  // Add other chains as needed
+];
 
-    # Switch back to the original branch
-    git checkout "$branch_name"
+const rpcHandler = new RpcHandler(chainDataArray);
 
-    # Push the changes to the original remote
-    git push "$original_remote" HEAD:"$branch_name"
-  else
-    echo "You are in a detached HEAD state. Please checkout a branch first."
-  fi
+// Sending an RPC request
+const payload = {
+  jsonrpc: "2.0",
+  method: "eth_blockNumber",
+  params: [],
+  id: 1,
+};
 
-  # Remove the template remote
-  # git remote remove template
+rpcHandler
+  .sendRequest(1, payload)
+  .then((response) => {
+    console.log("Block Number:", response.result);
+  })
+  .catch((error) => {
+    console.error("Error:", error.message);
+  });
+```
+
+## API Reference
+
+### `RpcHandler`
+
+#### Constructor
+
+```typescript
+new RpcHandler(chainData: ChainData[])
+```
+
+- `chainData`: An array of `ChainData` objects representing different blockchain networks and their RPC endpoints.
+
+#### Methods
+
+##### `sendRequest(chainId: number, payload: Record<string, unknown>): Promise<Record<string, unknown>>`
+
+Sends an RPC request to the fastest available endpoint for the specified chain ID.
+
+- `chainId`: The ID of the blockchain network.
+- `payload`: The RPC request payload.
+
+Returns a promise that resolves with the RPC response.
+
+## Interfaces
+
+### `ChainData`
+
+Represents the data for a blockchain network.
+
+```typescript
+interface ChainData {
+  name: string;
+  chain: string;
+  rpc: string[];
+  chainId: number;
+  // Optional properties
+  icon?: string;
+  features?: Feature[];
+  faucets?: string[];
+  nativeCurrency?: Currency;
+  infoURL?: string;
+  shortName?: string;
+  networkId?: number;
+  slip44?: number;
+  ens?: { registry: string };
+  explorers?: Explorer[];
+  title?: string;
+  status?: string;
+  redFlags?: string[];
+  parent?: ParentChain;
 }
 ```
+
+### `Feature`
+
+Represents a feature of the blockchain network.
+
+```typescript
+interface Feature {
+  name: string;
+}
+```
+
+### `Currency`
+
+Represents the native currency of the blockchain network.
+
+```typescript
+interface Currency {
+  name: string;
+  symbol: string;
+  decimals: number;
+}
+```
+
+### `Explorer`
+
+Represents an explorer for the blockchain network.
+
+```typescript
+interface Explorer {
+  name: string;
+  url: string;
+  standard: string;
+  icon?: string;
+}
+```
+
+### `ParentChain`
+
+Represents the parent chain information for networks that are sidechains or layer 2 solutions.
+
+```typescript
+interface ParentChain {
+  type: string;
+  chain: string;
+  bridges: { url: string }[];
+}
+```
+
+## Storage Mechanisms
+
+The `RpcHandler` class uses a storage mechanism to cache the fastest RPC endpoints. It supports both browser and Node.js environments:
+
+- **Browser**: Uses `localStorage` via the `BrowserStorage` class.
+- **Node.js**: Uses an in-memory storage via the `NodeStorage` class.
+
+## Contributing
+
+Contributions are welcome! Please open an issue or submit a pull request with your changes.
+
+## License
+
+This project is licensed under the MIT License.
