@@ -1,6 +1,6 @@
-`@ubiquity/rpc-handler`
 
-# RpcHandler
+
+# `@ubiquity/rpc-handler`
 
 `RpcHandler` is a TypeScript class designed to manage RPC (Remote Procedure Call) endpoints for different blockchain networks. It intelligently selects the fastest available RPC endpoint for a given chain and handles request failures gracefully by retrying with alternative endpoints.
 
