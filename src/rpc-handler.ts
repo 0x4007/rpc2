@@ -1,4 +1,4 @@
-interface ChainData {
+export interface ChainData {
   name: string;
   chain: string;
   icon?: string;
@@ -75,7 +75,7 @@ function isBrowser(): boolean {
 export class RpcHandler {
   private _chainData: ChainData[];
   private _storage: StorageInterface;
-  private _fastestRpcs: { [chainId: number]: string } = {};
+  private _fastestRpcs: { [networkId: number]: string } = {};
 
   constructor(chainData: ChainData[]) {
     this._chainData = chainData;
@@ -97,7 +97,7 @@ export class RpcHandler {
   private async _checkLatency(rpc: string): Promise<{ rpc: string; latency: number }> {
     const start = Date.now();
     try {
-      const response = await this._sendRpcRequest(rpc, { jsonrpc: "2.0", method: "eth_blockNumber", params: [], id: 1 }, 5000);
+      const response = await this._sendRpcRequest(rpc, { jsonrpc: "2.0", method: "eth_blockNumber", params: [], id: 1 }, 1000);
       if (response && response.result) {
         const latency = Date.now() - start;
         return { rpc, latency };
@@ -143,42 +143,47 @@ export class RpcHandler {
     }
   }
 
-  private async _getFastestRpc(chainId: number): Promise<string> {
-    if (this._fastestRpcs[chainId]) {
-      return this._fastestRpcs[chainId];
+  private async _getFastestRpc(networkId: number): Promise<string> {
+    if (this._fastestRpcs[networkId]) {
+      return this._fastestRpcs[networkId];
     }
 
-    const chain = this._chainData.find((c) => c.chainId === chainId);
+    const chain = this._chainData.find((c) => c.networkId === networkId);
     if (!chain || !chain.rpc || chain.rpc.length === 0) {
-      throw new Error(`No RPC endpoints found for chainId ${chainId}`);
+      throw new Error(`No RPC endpoints found for networkId ${networkId}`);
     }
 
     const fastestRpc = await this._findFastestRpc(chain.rpc);
-    this._fastestRpcs[chainId] = fastestRpc;
+    this._fastestRpcs[networkId] = fastestRpc;
     this._saveCache();
 
     return fastestRpc;
   }
 
-  public async sendRequest(chainId: number, payload: Record<string, unknown>): Promise<Record<string, unknown>> {
-    const rpc = await this._getFastestRpc(chainId);
+  public async sendRequest(payload: { jsonrpc: string; method: string; params: unknown[]; id: number }): Promise<Record<string, unknown>> {
+    const networkId: number = payload.id;
+    if (!networkId) {
+      throw new Error("Invalid networkId");
+    }
+
+    const rpc = await this._getFastestRpc(networkId);
     try {
-      return await this._sendRpcRequest(rpc, payload, 10000);
+      return await this._sendRpcRequest(rpc, payload, 1000);
     } catch {
       // Remove the failed RPC from cache and try others
-      delete this._fastestRpcs[chainId];
+      delete this._fastestRpcs[networkId];
       this._saveCache();
 
-      const chain = this._chainData.find((c) => c.chainId === chainId);
+      const chain = this._chainData.find((c) => c.networkId === networkId);
       if (!chain || !chain.rpc || chain.rpc.length === 0) {
-        throw new Error(`No RPC endpoints found for chainId ${chainId}`);
+        throw new Error(`No RPC endpoints found for networkId ${networkId}`);
       }
 
       for (const alternativeRpc of chain.rpc) {
         if (alternativeRpc === rpc) continue;
         try {
-          const response = await this._sendRpcRequest(alternativeRpc, payload, 10000);
-          this._fastestRpcs[chainId] = alternativeRpc;
+          const response = await this._sendRpcRequest(alternativeRpc, payload, 1000);
+          this._fastestRpcs[networkId] = alternativeRpc;
           this._saveCache();
           return response;
         } catch {
@@ -189,14 +194,3 @@ export class RpcHandler {
     }
   }
 }
-
-// Usage example:
-
-// Assuming you have the chain data in a variable called `chainDataArray`
-// const chainDataArray: ChainData[] = [...];
-
-// const rpcHandler = new RpcHandler(chainDataArray);
-
-// Sending a request:
-// const payload = { jsonrpc: '2.0', method: 'eth_blockNumber', params: [], id: 1 };
-// rpcHandler.sendRequest(1, payload).then(console.log).catch(console.error);

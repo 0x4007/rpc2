@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, jest, test } from "@jest/globals";
 import fetch from "node-fetch";
-import { RpcHandler } from "./rpc2";
+import { RpcHandler } from "./rpc-handler";
 
 // Mock node-fetch
 jest.mock("node-fetch");
