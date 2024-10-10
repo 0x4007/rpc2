@@ -15,7 +15,7 @@ const networkIdInput = document.getElementById("network-id-input") as HTMLInputE
 
 const callRpcButton = document.getElementById("call-rpc-button");
 callRpcButton.addEventListener("click", async () => {
-  const networkIdSelection = networkIdInput.value;
+  const networkIdSelection = parseInt(networkIdInput.value);
   if (!networkIdSelection) {
     console.error("Network ID is required");
     return;
