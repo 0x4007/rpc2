@@ -5,7 +5,6 @@ export async function useRpc2() {
   // const chains: ChainData[] = await fetch(chainsUrl).then((res) => res.json());
   const rpcHandler = new RpcHandler(chains as ChainData[]);
   const response = await rpcHandler.sendRequest(100, {
-    jsonrpc: "2.0",
     method: "eth_blockNumber",
     params: [],
   });

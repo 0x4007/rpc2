@@ -15,7 +15,7 @@ callRpcButton.addEventListener("click", async () => {
 
 async function callRpc(networkId: number, method = "eth_blockNumber", params = []) {
   const rpcHandler = new RpcHandler(chains as ChainData[]);
-  const response = await rpcHandler.sendRequest(networkId, { jsonrpc: "2.0", method, params });
+  const response = await rpcHandler.sendRequest(networkId, { method, params });
   console.log(response); // Changed from console.trace to console.log
   const result = parseInt(response.result, 16);
   const buffer = [`eth_blockNumber: ${result}`].join("\n\n");

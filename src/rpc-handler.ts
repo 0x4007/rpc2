@@ -178,13 +178,13 @@ export class RpcHandler {
     return fastestRpc;
   }
 
-  public async sendRequest(chainId: number, payload: { jsonrpc: string; method: string; params: unknown[] }): Promise<Record<string, unknown>> {
+  public async sendRequest(chainId: number, payload: { method: string; params: unknown[] }): Promise<Record<string, unknown>> {
     if (!chainId) {
       throw new Error("Invalid chainId");
     }
 
     const rpc = await this._getFastestRpc(chainId);
-    const fullPayload = { ...payload, id: this._getNextPayloadId() };
+    const fullPayload = { ...payload, id: this._getNextPayloadId(), jsonrpc: "2.0" };
     try {
       return await this._sendRpcRequest(rpc, fullPayload, 10000);
     } catch {
