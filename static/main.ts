@@ -1,6 +1,6 @@
 import chains from "../src/fixtures/chains.json";
 import { ChainData, RpcHandler } from "../src/rpc-handler";
-import { getDaiBalance } from "./get-dai-balance";
+import { getStablecoinBalances } from "./get-cash-balance";
 
 const networkIdInput = document.getElementById("network-id-input") as HTMLInputElement;
 const methodNameInput = document.getElementById("method-name-input") as HTMLInputElement;
@@ -28,4 +28,10 @@ async function callRpc(networkId: number, method = "eth_blockNumber", params = [
   return rpcHandler;
 }
 
-void getDaiBalance();
+void getStablecoinBalances("0x4007CE2083c7F3E18097aeB3A39bb8eC149a341d")
+  .then((balances) => {
+    console.log(balances);
+    const buffer = [`Stablecoin balances: ${JSON.stringify(balances, null, 2)}`].join("\n\n");
+    document.getElementById("output").innerText = buffer;
+  })
+  .catch(console.error);
