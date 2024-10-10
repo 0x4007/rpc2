@@ -75,7 +75,8 @@ function isBrowser(): boolean {
 export class RpcHandler {
   private _chainData: ChainData[];
   private _storage: StorageInterface;
-  private _fastestRpcs: { [networkId: number]: string } = {};
+  private _fastestRpcs: { [chainId: number]: string } = {};
+  private _nextPayloadId: number = 1;
 
   constructor(chainData: ChainData[]) {
     this._chainData = chainData;
@@ -97,7 +98,16 @@ export class RpcHandler {
   private async _checkLatency(rpc: string): Promise<{ rpc: string; latency: number }> {
     const start = Date.now();
     try {
-      const response = await this._sendRpcRequest(rpc, { jsonrpc: "2.0", method: "eth_blockNumber", params: [], id: 1 }, 10000);
+      const response = await this._sendRpcRequest(
+        rpc,
+        {
+          jsonrpc: "2.0",
+          method: "eth_blockNumber",
+          params: [],
+          id: this._getNextPayloadId(),
+        },
+        10000
+      );
       if (response && response.result) {
         const latency = Date.now() - start;
         return { rpc, latency };
@@ -143,74 +153,74 @@ export class RpcHandler {
     }
   }
 
-  private async _getFastestRpc(networkId: number): Promise<string> {
-    if (this._fastestRpcs[networkId]) {
-      return this._fastestRpcs[networkId];
+  private async _getFastestRpc(chainId: number): Promise<string> {
+    if (this._fastestRpcs[chainId]) {
+      return this._fastestRpcs[chainId];
     }
 
-    const chain = this._chainData.find((c) => c.networkId === networkId);
+    const chain = this._chainData.find((c) => c.chainId === chainId);
     if (!chain || !chain.rpc || chain.rpc.length === 0) {
       // If no RPC found, search again in the entire chainData
       const allRpcs = this._chainData.flatMap((c) => c.rpc);
       if (allRpcs.length === 0) {
-        throw new Error(`No RPC endpoints found for any network`);
+        throw new Error(`No RPC endpoints found for any chain`);
       }
       const fastestRpc = await this._findFastestRpc(allRpcs);
-      this._fastestRpcs[networkId] = fastestRpc;
+      this._fastestRpcs[chainId] = fastestRpc;
       this._saveCache();
       return fastestRpc;
     }
 
     const fastestRpc = await this._findFastestRpc(chain.rpc);
-    this._fastestRpcs[networkId] = fastestRpc;
+    this._fastestRpcs[chainId] = fastestRpc;
     this._saveCache();
 
     return fastestRpc;
   }
 
-  public async sendRequest(payload: { jsonrpc: string; method: string; params: unknown[]; id: number }): Promise<Record<string, unknown>> {
-    const networkId: number = payload.id;
-    if (!networkId) {
-      throw new Error("Invalid networkId");
+  public async sendRequest(chainId: number, payload: { jsonrpc: string; method: string; params: unknown[] }): Promise<Record<string, unknown>> {
+    if (!chainId) {
+      throw new Error("Invalid chainId");
     }
 
-    const rpc = await this._getFastestRpc(networkId);
+    const rpc = await this._getFastestRpc(chainId);
+    const fullPayload = { ...payload, id: this._getNextPayloadId() };
     try {
-      return await this._sendRpcRequest(rpc, payload, 10000);
+      return await this._sendRpcRequest(rpc, fullPayload, 10000);
     } catch {
-      return await this._handleFailedRequest(networkId, rpc, payload);
+      return await this._handleFailedRequest(chainId, rpc, fullPayload);
     }
   }
 
-  private async _handleFailedRequest(networkId: number, failedRpc: string, payload: Record<string, unknown>): Promise<Record<string, unknown>> {
-    this._removeFailedRpcFromCache(networkId);
-    const rpcs = this._getRpcsForNetwork(networkId);
-    return await this._tryAlternativeRpcs(rpcs, failedRpc, networkId, payload);
+  private async _handleFailedRequest(chainId: number, failedRpc: string, payload: Record<string, unknown>): Promise<Record<string, unknown>> {
+    this._removeFailedRpcFromCache(chainId);
+    const rpcs = this._getRpcsForChain(chainId);
+    return await this._tryAlternativeRpcs(rpcs, failedRpc, chainId, payload);
   }
 
-  private _removeFailedRpcFromCache(networkId: number): void {
-    delete this._fastestRpcs[networkId];
+  private _removeFailedRpcFromCache(chainId: number): void {
+    delete this._fastestRpcs[chainId];
     this._saveCache();
   }
 
-  private _getRpcsForNetwork(networkId: number): string[] {
-    const chain = this._chainData.find((c) => c.networkId === networkId);
+  private _getRpcsForChain(chainId: number): string[] {
+    const chain = this._chainData.find((c) => c.chainId === chainId);
     if (chain?.rpc?.length) {
       return chain.rpc;
     }
     return this._chainData.flatMap((c) => c.rpc);
   }
 
-  private async _tryAlternativeRpcs(rpcs: string[], failedRpc: string, networkId: number, payload: Record<string, unknown>): Promise<Record<string, unknown>> {
+  private async _tryAlternativeRpcs(rpcs: string[], failedRpc: string, chainId: number, payload: Record<string, unknown>): Promise<Record<string, unknown>> {
     if (rpcs.length === 0) {
-      throw new Error(`No RPC endpoints found for any network`);
+      throw new Error(`No RPC endpoints found for any chain`);
     }
 
     for (const alternativeRpc of rpcs) {
       if (alternativeRpc === failedRpc) continue;
       try {
         const response = await this._sendRpcRequest(alternativeRpc, payload, 10000);
-        this._updateFastestRpc(networkId, alternativeRpc);
+        this._updateFastestRpc(chainId, alternativeRpc);
         return response;
       } catch {
         continue;
@@ -219,8 +229,12 @@ export class RpcHandler {
     throw new Error("All RPC endpoints failed.");
   }
 
-  private _updateFastestRpc(networkId: number, rpc: string): void {
-    this._fastestRpcs[networkId] = rpc;
+  private _updateFastestRpc(chainId: number, rpc: string): void {
+    this._fastestRpcs[chainId] = rpc;
     this._saveCache();
+  }
+
+  private _getNextPayloadId(): number {
+    return this._nextPayloadId++;
   }
 }
