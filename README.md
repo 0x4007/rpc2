@@ -175,7 +175,7 @@ We welcome contributions! If you have suggestions or encounter issues, please op
 
 This project is licensed under the MIT License.
 
-### Remarks
+# Remarks
 
 In the UI you can get my WXDAI balance on Gnosis Chain using the following values (network id, method, params):
 
@@ -186,3 +186,6 @@ eth_call
 
 [     {         "to": "0xe91D153E0b41518A2Ce8Dd3D7944Fa863463a97d",         "data": "0x70a082310000000000000000000000004007ce2083c7f3e18097aeb3a39bb8ec149a341d"     },     "latest" ]
 ```
+
+<img width="545" alt="Screenshot 2024-10-11 at 06 35 25" src="https://github.com/user-attachments/assets/66eca3be-5419-49b1-82c8-5304e366dca5">
+
