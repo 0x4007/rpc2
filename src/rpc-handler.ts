@@ -1,13 +1,15 @@
+import chains from "./fixtures/chains.json";
 import { BrowserStorage, ChainData, NodeStorage, StorageInterface, isBrowser } from "./rpc-handler-types";
-
 export class RpcHandler {
-  private _chainData: ChainData[];
+  private _chainData = chains as ChainData[];
   private _storage: StorageInterface;
   private _fastestRpcs: { [chainId: number]: string } = {};
   private _nextPayloadId: number = 1;
 
-  constructor(chainData: ChainData[]) {
-    this._chainData = chainData;
+  constructor(chainData?: ChainData[]) {
+    if (chainData) {
+      this._chainData = chainData;
+    }
     this._storage = isBrowser() ? new BrowserStorage() : new NodeStorage();
     this._loadCache();
   }
