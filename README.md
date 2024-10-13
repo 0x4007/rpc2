@@ -188,4 +188,3 @@ eth_call
 ```
 
 <img width="545" alt="Screenshot 2024-10-11 at 06 35 25" src="https://github.com/user-attachments/assets/66eca3be-5419-49b1-82c8-5304e366dca5">
-

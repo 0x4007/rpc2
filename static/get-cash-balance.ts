@@ -47,12 +47,13 @@ async function getTokenBalance(tokenAddress: string, userAddress: string): Promi
 }
 
 export async function getStablecoinBalances(userAddress: string) {
-  const balances: { [key: string]: string } = {};
+  const balances: { [key: string]: number } = {};
 
   for (const coin of stablecoins) {
     const balance = await getTokenBalance(coin.address, userAddress);
-    const formattedBalance = (Number(balance) / 10 ** coin.decimals).toFixed(coin.decimals);
-    balances[coin.name] = formattedBalance;
+    const balanceNumber = Number(balance) / 10 ** coin.decimals;
+    const formattedBalance = balanceNumber % 1 === 0 ? balanceNumber.toFixed(0) : balanceNumber.toString();
+    balances[coin.name] = parseFloat(formattedBalance);
   }
 
   console.log("Stablecoin balances:", balances);
