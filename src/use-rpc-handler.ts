@@ -1,6 +1,7 @@
 import chains from "./fixtures/chains.json";
-import { ChainData, RpcHandler } from "./rpc-handler";
-export async function useRpc2() {
+import { RpcHandler } from "./rpc-handler";
+import { ChainData } from "./rpc-handler-types";
+export async function useRpcHandler() {
   // const chainsUrl = `https://chainid.network/chains.json`;
   // const chains: ChainData[] = await fetch(chainsUrl).then((res) => res.json());
   const rpcHandler = new RpcHandler(chains as ChainData[]);
@@ -12,4 +13,4 @@ export async function useRpc2() {
   return rpcHandler;
 }
 
-void useRpc2();
+void useRpcHandler();

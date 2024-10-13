@@ -1,5 +1,6 @@
 import chains from "../src/fixtures/chains.json";
-import { ChainData, RpcHandler } from "../src/rpc-handler";
+import { RpcHandler } from "../src/rpc-handler";
+import { ChainData } from "../src/rpc-handler-types";
 import { getStablecoinBalances } from "./get-cash-balance";
 
 const networkIdInput = document.getElementById("network-id-input") as HTMLInputElement;

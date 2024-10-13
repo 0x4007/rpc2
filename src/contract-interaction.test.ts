@@ -2,7 +2,7 @@ import erc20Abi from "../src/abis/erc20.json";
 import chains from "../src/fixtures/chains.json";
 import { RpcHandler } from "../src/rpc-handler";
 import { ContractInteraction } from "./contract-interaction";
-import { ChainData } from "./rpc-handler";
+import { ChainData } from "./rpc-handler-types";
 
 const rpcHandler = new RpcHandler(chains as ChainData[]);
 const chainId = 1; // Ethereum mainnet
