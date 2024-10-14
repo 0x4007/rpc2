@@ -1,6 +1,7 @@
 import chains from "./fixtures/chains.json";
 import { BrowserStorage, NodeStorage, isBrowser } from "./rpc-handler-storage";
 import { ChainData, JsonRpcResponse, StorageInterface } from "./rpc-handler-types";
+
 export class RpcHandler {
   private _chainData = chains as ChainData[];
   private _storage: StorageInterface;
@@ -9,9 +10,12 @@ export class RpcHandler {
 
   constructor(chainData?: ChainData[]) {
     if (chainData) {
-      // If chainData is provided, merge it with the default chainData
       this._chainData = [...this._chainData, ...chainData.filter((chain) => !this._chainData.some((existingChain) => existingChain.chainId === chain.chainId))];
     }
+    this._chainData = this._chainData.map((chain) => ({
+      ...chain,
+      rpc: this._filterValidRpcs(chain.rpc),
+    }));
     this._storage = isBrowser() ? new BrowserStorage() : new NodeStorage();
     this._loadCache();
   }
@@ -155,12 +159,16 @@ export class RpcHandler {
     this._saveCache();
   }
 
+  private _filterValidRpcs(rpcs: string[]): string[] {
+    return rpcs.filter((rpc) => !rpc.includes("${") && !rpc.includes("}"));
+  }
+
   private _getRpcsForChain(chainId: number): string[] {
     const chain = this._chainData.find((c) => c.chainId === chainId);
     const allRpcs = chain?.rpc?.length ? chain.rpc : this._chainData.flatMap((c) => c.rpc);
 
-    // Filter out WebSocket URLs
-    return allRpcs.filter((rpc) => !rpc.startsWith("ws://") && !rpc.startsWith("wss://"));
+    // Filter out WebSocket URLs and invalid template URLs
+    return this._filterValidRpcs(allRpcs.filter((rpc) => !rpc.startsWith("ws://") && !rpc.startsWith("wss://")));
   }
 
   private async _tryAlternativeRpcs(rpcs: string[], failedRpc: string, chainId: number, payload: JsonRpcResponse): Promise<JsonRpcResponse> {
