@@ -9,7 +9,8 @@ export class RpcHandler {
 
   constructor(chainData?: ChainData[]) {
     if (chainData) {
-      this._chainData = chainData;
+      // If chainData is provided, merge it with the default chainData
+      this._chainData = [...this._chainData, ...chainData.filter((chain) => !this._chainData.some((existingChain) => existingChain.chainId === chain.chainId))];
     }
     this._storage = isBrowser() ? new BrowserStorage() : new NodeStorage();
     this._loadCache();

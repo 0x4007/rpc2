@@ -55,6 +55,5 @@ export async function getStablecoinBalances(userAddress: string) {
     balances[coin.name] = parseFloat(formattedBalance);
   }
 
-  console.log("Stablecoin balances:", balances);
   return balances;
 }
