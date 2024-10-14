@@ -20,7 +20,8 @@
     "Rpcs",
     "servedir",
     "stablecoins",
-    "UUSD"
+    "UUSD",
+    "WXDAI"
   ],
   "dictionaries": [
     "typescript",

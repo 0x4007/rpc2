@@ -46,3 +46,14 @@ export interface StorageInterface {
   getItem(key: string): string | null;
   setItem(key: string, value: string): void;
 }
+
+export interface JsonRpcResponse {
+  jsonrpc: "2.0";
+  id: number | string | null;
+  result?: unknown;
+  error?: {
+    code: number;
+    message: string;
+    data?: unknown;
+  };
+}

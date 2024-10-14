@@ -150,7 +150,7 @@ interface Explorer {
 
 ### `ParentChain`
 
-Represents the parent chain information for networks that are sidechains or layer 2 solutions.
+Represents the parent chain information for networks that are side chains or layer 2 solutions.
 
 ```typescript
 interface ParentChain {

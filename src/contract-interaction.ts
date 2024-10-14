@@ -185,10 +185,24 @@ export class ContractInteraction {
     return results;
   }
 
-  public async callMethod(methodName: string, params: unknown[], types: string[], outputTypes: string[]): Promise<unknown> {
-    const functionSignature = `${methodName}(${types.join(",")})`;
+  public async callMethod(methodName: string, params: unknown[]): Promise<unknown> {
+    const methodSignatures: { [key: string]: { inputs: string[]; outputs: string[] } } = {
+      balanceOf: {
+        inputs: ["address"],
+        outputs: ["uint256"],
+      },
+      // Add other method signatures here
+    };
+
+    if (!methodSignatures[methodName]) {
+      throw new Error(`Method ${methodName} not found in method signatures`);
+    }
+
+    const { inputs, outputs } = methodSignatures[methodName];
+
+    const functionSignature = `${methodName}(${inputs.join(",")})`;
     const functionSelector = this._encodeFunctionSignature(functionSignature);
-    const encodedParams = this._encodeParameters(types, params);
+    const encodedParams = this._encodeParameters(inputs, params);
     const data = functionSelector + encodedParams;
 
     const payload = {
@@ -205,7 +219,8 @@ export class ContractInteraction {
     try {
       const response = await this._rpcHandler.sendRequest(this._chainId, payload);
       if (response.result && response.result !== "0x") {
-        return this._decodeParameters(outputTypes, response.result as string);
+        const decodedResult = this._decodeParameters(outputs, response.result as string);
+        return decodedResult.length === 1 ? decodedResult[0] : decodedResult;
       }
       return null;
     } catch (error) {
