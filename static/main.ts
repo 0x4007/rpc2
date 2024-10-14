@@ -22,3 +22,27 @@ void authentication()
     generateDeterministicSigningKeyWithWebAuthn(passphrase).then(console.trace).catch(console.error);
   })
   .catch(console.error);
+
+import { authenticateUser } from "./biometric-auth";
+import { getOrGenerateKeyPair } from "./crypto-key-manager";
+
+async function initializeSigningKey() {
+  const isAuthenticated = await authenticateUser();
+  if (!isAuthenticated) {
+    alert("Authentication failed. Cannot proceed.");
+    return;
+  }
+
+  try {
+    const { privateKey, publicKey, address } = await getOrGenerateKeyPair();
+    console.log("Private Key:", privateKey);
+    console.log("Public Key:", publicKey);
+    console.log("Address:", address);
+    // Proceed with your signing operations
+  } catch (error) {
+    console.error("Error initializing signing key:", error);
+  }
+}
+
+// Initialize on page load or appropriate event
+initializeSigningKey().then(console.trace).catch(console.error);
