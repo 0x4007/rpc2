@@ -1,6 +1,5 @@
 import chains from "../src/fixtures/chains.json";
-import { RpcHandler } from "../src/rpc-handler";
-import { ChainData } from "../src/rpc-handler-types";
+import { ChainData, RpcHandler } from "../src/rpc-handler";
 
 const rpcHandler = new RpcHandler(chains as ChainData[]);
 const chainId = 1; // Ethereum mainnet

@@ -1,5 +1,5 @@
 import chains from "./fixtures/chains.json";
-import { BrowserStorage, ChainData, NodeStorage, StorageInterface, isBrowser } from "./rpc-handler-types";
+import { BrowserStorage, ChainData, NodeStorage, StorageInterface, isBrowser } from "./rpc-handler";
 export class RpcHandler {
   private _chainData = chains as ChainData[];
   private _storage: StorageInterface;
