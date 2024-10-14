@@ -1,8 +1,8 @@
+import { $ } from "./call-rpc";
 import { subscribeToWalletChanges } from "./connect-wallet";
 import { getStablecoinBalances } from "./get-cash-balance";
-import { $ } from "./call-rpc";
 
-subscribeToWalletChanges(async (address) => {
+subscribeToWalletChanges(async (address: string | null) => {
   if (address) {
     const balances = await getStablecoinBalances(address);
     console.trace(balances);
