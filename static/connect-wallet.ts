@@ -2,11 +2,20 @@ import { EthereumProviderHandler } from "../src/ethereum-provider-handler";
 
 let walletAddress: string | null = null;
 
+const DATA_CONNECTED_WALLET = "data-connected-wallet";
 const connectWalletButton = document.getElementById("connect-wallet-button") as HTMLButtonElement;
-connectWalletButton?.addEventListener("click", connectWallet);
+connectWalletButton?.addEventListener("click", toggleWalletConnection);
 
 // Add this line to check for existing connection when the page loads
 document.addEventListener("DOMContentLoaded", checkExistingConnection);
+
+async function toggleWalletConnection() {
+  if (connectWalletButton.hasAttribute(DATA_CONNECTED_WALLET)) {
+    await disconnectWallet();
+  } else {
+    await connectWallet();
+  }
+}
 
 async function connectWallet() {
   if (typeof window.ethereum !== "undefined") {
@@ -19,6 +28,12 @@ async function connectWallet() {
   } else {
     console.error("No Ethereum provider found. Please install a wallet like MetaMask.");
   }
+}
+
+async function disconnectWallet() {
+  setWalletAddress(null);
+  connectWalletButton.removeAttribute(DATA_CONNECTED_WALLET);
+  console.log("Wallet disconnected");
 }
 
 async function checkExistingConnection() {
@@ -43,8 +58,7 @@ async function updateConnectionStatus() {
 
   setWalletAddress(selectedAccount);
   console.log("Connected account:", selectedAccount);
-  //   connectWalletButton.disabled = true;
-  connectWalletButton.setAttribute("data-connected-wallet", selectedAccount);
+  connectWalletButton.setAttribute(DATA_CONNECTED_WALLET, selectedAccount);
 }
 
 // Listen for account changes
@@ -52,9 +66,7 @@ if (window.ethereum) {
   window.ethereum.on("accountsChanged", async (accounts: string[]) => {
     if (accounts.length === 0) {
       // User disconnected their wallet
-      setWalletAddress(null);
-      //   connectWalletButton.disabled = false;
-      connectWalletButton.removeAttribute("data-connected-wallet");
+      await disconnectWallet();
     } else {
       // User switched accounts
       await updateConnectionStatus();

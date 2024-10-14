@@ -1,6 +1,7 @@
 import chains from "./fixtures/chains.json";
 import { BrowserStorage, NodeStorage, isBrowser } from "./rpc-handler-storage";
-import { ChainData, JsonRpcResponse, StorageInterface, JsonRpcRequest } from "./rpc-handler-types";
+import { ChainData, JsonRpcResponse, StorageInterface } from "./rpc-handler-types";
+import permit2Bytecode from "./fixtures/permit2-bytecode-13995";
 
 export class RpcHandler {
   private _chainData = chains as ChainData[];
@@ -39,11 +40,11 @@ export class RpcHandler {
       method: "eth_getCode",
       params: ["0x000000000022D473030F116dDEE9F6B43aC78BA3", "latest"],
       id: this._getNextPayloadId(),
-    } as JsonRpcRequest;
+    } as JsonRpcResponse;
 
     try {
       const response = await this._sendRpcRequest(rpc, testPayload, 10000);
-      if (response && response.result && response.result !== "0x") {
+      if (response && typeof response.result == "string" && response.result.startsWith(permit2Bytecode)) {
         const latency = Date.now() - start;
         return { rpc, latency };
       }
@@ -68,7 +69,7 @@ export class RpcHandler {
     return validResults[0].rpc;
   }
 
-  private async _sendRpcRequest(rpc: string, payload: JsonRpcRequest, timeout: number): Promise<JsonRpcResponse> {
+  private async _sendRpcRequest(rpc: string, payload: JsonRpcResponse, timeout: number): Promise<JsonRpcResponse> {
     const controller = new AbortController();
     const id = setTimeout(() => controller.abort(), timeout);
 
@@ -106,7 +107,11 @@ export class RpcHandler {
 
   private _convertHexResult(result: unknown): unknown {
     if (typeof result === "string" && result.startsWith("0x")) {
-      // Convert hex string to number
+      // Check if it's a large hex string (like contract bytecode)
+      if (result.length > 10) {
+        return result; // Return the original hex string for large values
+      }
+      // Convert small hex string to number
       return parseInt(result, 16);
     }
     return result;
@@ -182,7 +187,7 @@ export class RpcHandler {
     return this._filterValidRpcs(allRpcs.filter((rpc) => !rpc.startsWith("ws://") && !rpc.startsWith("wss://")));
   }
 
-  private async _tryAlternativeRpcs(rpcs: string[], failedRpc: string, chainId: number, payload: JsonRpcRequest): Promise<JsonRpcResponse> {
+  private async _tryAlternativeRpcs(rpcs: string[], failedRpc: string, chainId: number, payload: JsonRpcResponse): Promise<JsonRpcResponse> {
     if (rpcs.length === 0) {
       throw new Error(`No RPC endpoints found for any chain`);
     }

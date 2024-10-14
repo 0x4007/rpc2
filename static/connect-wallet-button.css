@@ -1,40 +1,44 @@
 #connect-wallet-button {
-    font-family: "Ubiquity Nova", sans-serif;
-    position: relative;
-    overflow: hidden;
-    white-space: nowrap;
-    width: 100px;
-    height: 24px;
-    vertical-align: middle;
-    padding: 0 8px;
-  }
+  font-family: "Ubiquity Nova", sans-serif;
+  position: relative;
+  overflow: hidden;
+  white-space: nowrap;
+  width: 112px;
+  height: 24px;
+  vertical-align: middle;
+  padding: 0 8px;
+}
 
-  #connect-wallet-button::before,
-  #connect-wallet-button::after {
-    content: attr(data-connected-wallet);
-    position: absolute;
-    top: 2px;
-    height: 100%;
-    overflow: hidden;
-    white-space: nowrap;
-  }
+#connect-wallet-button::before {
+  content: "Connect Wallet";
+}
 
-  #connect-wallet-button::before {
-    left: 2px;
-    max-width: 50%;
-    text-align: left;
-    text-overflow: ellipsis;
-  }
+#connect-wallet-button[data-connected-wallet]::before,
+#connect-wallet-button[data-connected-wallet]::after {
+  content: attr(data-connected-wallet);
+  position: absolute;
+  top: 2px;
+  height: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+}
 
-  #connect-wallet-button::after {
-    right: 2px;
-    max-width: 50%;
-    text-align: right;
-    direction: rtl;
-    text-overflow: ellipsis;
-  }
+#connect-wallet-button[data-connected-wallet]::before {
+  left: 4px;
+  max-width: 55%;
+  text-align: left;
+  text-overflow: ellipsis;
+}
 
-  #connect-wallet-button::before,
-  #connect-wallet-button::after {
-    content: attr(data-connected-wallet);
-  }
+#connect-wallet-button[data-connected-wallet]::after {
+  right: 4px;
+  max-width: 45%;
+  text-align: right;
+  direction: rtl;
+  text-overflow: ellipsis;
+}
+
+#connect-wallet-button[data-connected-wallet]::before,
+#connect-wallet-button[data-connected-wallet]::after {
+  content: attr(data-connected-wallet);
+}
