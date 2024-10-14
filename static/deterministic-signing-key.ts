@@ -1,15 +1,17 @@
 import { ec as EC } from "elliptic";
 import { keccak256 } from "js-sha3";
+import { getGitHubUser } from "./getters/get-github-user";
 
 const ec = new EC("secp256k1");
 
-export function generateDeterministicSigningKey(passphrase?: string | null): {
+export async function generateDeterministicSigningKeyWithWebAuthn(passphrase?: string | null): Promise<{
   privateKey: string;
   publicKey: string;
   address: string;
-} {
-  const deviceFingerprint = getDeviceFingerprint();
-  const combined = passphrase ? `${deviceFingerprint}|${passphrase}` : deviceFingerprint;
+}> {
+  const credentialId = await getCredentialId();
+  const deviceEntropy = credentialId ? bufferToHex(credentialId) : getDeviceFingerprint();
+  const combined = passphrase ? `${deviceEntropy}|${passphrase}` : deviceEntropy;
   const privateKeyHex = hashToPrivateKey(combined);
   const keyPair = ec.keyFromPrivate(privateKeyHex);
 
@@ -23,6 +25,59 @@ export function generateDeterministicSigningKey(passphrase?: string | null): {
   };
 }
 
+async function getCredentialId(): Promise<ArrayBuffer | null> {
+  if (!window.PublicKeyCredential) {
+    console.warn("WebAuthn is not supported in this browser.");
+    return null;
+  }
+
+  try {
+    const isAvailable = await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
+    if (!isAvailable) {
+      console.warn("No suitable authenticator is available.");
+      return null;
+    }
+
+    const gitHubUser = await getGitHubUser();
+    if (!gitHubUser) {
+      console.warn("User is not authenticated with GitHub.");
+      return null;
+    }
+
+    const publicKeyCredentialCreationOptions: PublicKeyCredentialCreationOptions = {
+      challenge: new Uint8Array(32),
+      rp: {
+        name: "Your App",
+        id: window.location.hostname,
+      },
+      user: {
+        id: new TextEncoder().encode(gitHubUser.id.toString()),
+        name: gitHubUser.login,
+        displayName: gitHubUser.name || gitHubUser.login,
+      },
+      pubKeyCredParams: [{ type: "public-key", alg: -7 }],
+      authenticatorSelection: {
+        authenticatorAttachment: "platform",
+        userVerification: "required",
+      },
+      timeout: 60000,
+      attestation: "none",
+    };
+
+    // Generate a random challenge
+    window.crypto.getRandomValues(publicKeyCredentialCreationOptions.challenge);
+
+    const credential = await navigator.credentials.create({ publicKey: publicKeyCredentialCreationOptions });
+    if (credential instanceof PublicKeyCredential) {
+      return credential.rawId;
+    }
+  } catch (error) {
+    console.error("Error creating credential:", error);
+  }
+  return null;
+}
+
+// Helper functions remain the same
 function getDeviceFingerprint(): string {
   const fingerprintComponents = [
     navigator.userAgent,
@@ -64,4 +119,9 @@ function hexToUint8Array(hexString: string): Uint8Array {
     throw new Error(`Invalid hex string: ${hexString}`);
   }
   return new Uint8Array(matches.map((byte) => parseInt(byte, 16)));
+}
+
+function bufferToHex(buffer: ArrayBuffer): string {
+  const byteArray = new Uint8Array(buffer);
+  return Array.from(byteArray, (byte) => byte.toString(16).padStart(2, "0")).join("");
 }

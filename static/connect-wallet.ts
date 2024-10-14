@@ -62,7 +62,7 @@ async function updateConnectionStatus() {
 }
 
 // Listen for account changes
-if (window.ethereum) {
+if (window.ethereum?.on) {
   window.ethereum.on("accountsChanged", async (accounts: string[]) => {
     if (accounts.length === 0) {
       // User disconnected their wallet

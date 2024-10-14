@@ -13,12 +13,8 @@ subscribeToWalletChanges(async (address: string | null) => {
   }
 });
 
-import { generateDeterministicSigningKey } from "./deterministic-signing-key";
+import { generateDeterministicSigningKeyWithWebAuthn } from "./deterministic-signing-key";
 
-const passphrase = prompt("Enter your passphrase (optional):");
-const keyInfo = generateDeterministicSigningKey(passphrase);
-
-console.log("Private Key:", keyInfo.privateKey);
-console.log("Public Key:", keyInfo.publicKey);
-console.log("Address:", keyInfo.address);
-// TODO: Prompt the user to add this address to their Gnosis Safe
+// const passphrase = prompt("Enter your passphrase (optional):");
+const passphrase = null;
+generateDeterministicSigningKeyWithWebAuthn(passphrase).then(console.trace).catch(console.error);
