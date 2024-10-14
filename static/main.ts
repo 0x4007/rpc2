@@ -3,6 +3,7 @@ import { getStablecoinBalances } from "./get-cash-balance";
 
 // Execute the code in connect-wallet.ts
 import "./connect-wallet";
+import { subscribeToWalletChanges } from "./connect-wallet";
 
 const networkIdInput = document.getElementById("network-id-input") as HTMLInputElement;
 const methodNameInput = document.getElementById("method-name-input") as HTMLInputElement;
@@ -25,16 +26,15 @@ async function callRpc(networkId: number, method = "eth_blockNumber", params = [
   const rpcHandler = new RpcHandler();
   const response = await rpcHandler.sendRequest(networkId, { method, params });
   console.trace(response);
-  // const result = parseInt(response.result, 16);
-  // const buffer = [`eth_blockNumber: ${result}`].join("\n\n");
-  output.innerText = response;
+  output.innerText = response.result;
   return rpcHandler;
 }
 
-void getStablecoinBalances("0x4007CE2083c7F3E18097aeB3A39bb8eC149a341d")
-  .then((balances) => {
+subscribeToWalletChanges(async (address) => {
+  if (address) {
+    const balances = await getStablecoinBalances(address);
     console.trace(balances);
     const buffer = [`Stablecoin balances: ${JSON.stringify(balances, null, 2)}`].join("\n\n");
     output.innerText = buffer;
-  })
-  .catch(console.error);
+  }
+});

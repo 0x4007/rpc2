@@ -50,7 +50,7 @@ export interface StorageInterface {
 export interface JsonRpcResponse {
   jsonrpc: "2.0";
   id: number | string | null;
-  result?: unknown;
+  result?: string | boolean | object | null;
   error?: {
     code: number;
     message: string;

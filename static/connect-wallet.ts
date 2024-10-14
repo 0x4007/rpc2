@@ -1,25 +1,88 @@
-// connect-wallet.ts
-
 import { EthereumProviderHandler } from "../src/ethereum-provider-handler";
 
-document.getElementById("connect-wallet-button")?.addEventListener("click", async () => {
+let walletAddress: string | null = null;
+
+const connectWalletButton = document.getElementById("connect-wallet-button") as HTMLButtonElement;
+connectWalletButton?.addEventListener("click", connectWallet);
+
+// Add this line to check for existing connection when the page loads
+document.addEventListener("DOMContentLoaded", checkExistingConnection);
+
+async function connectWallet() {
   if (typeof window.ethereum !== "undefined") {
     try {
-      // Request account access
       await window.ethereum.request({ method: "eth_requestAccounts" });
-
-      const ethereumProviderHandler = new EthereumProviderHandler(window.ethereum);
-
-      // Get the list of accounts
-      const accounts = (await ethereumProviderHandler.sendRequest("eth_accounts", [])) as string[];
-      const selectedAccount = accounts[0];
-
-      console.log("Connected account:", selectedAccount);
-      // You can now use the selectedAccount variable as needed
+      await updateConnectionStatus();
     } catch (error) {
       console.error("Error connecting to wallet:", error);
     }
   } else {
     console.error("No Ethereum provider found. Please install a wallet like MetaMask.");
   }
-});
+}
+
+async function checkExistingConnection() {
+  if (typeof window.ethereum !== "undefined") {
+    const ethereumProviderHandler = new EthereumProviderHandler(window.ethereum);
+    const accounts = (await ethereumProviderHandler.sendRequest("eth_accounts")) as string[];
+
+    if (accounts.length > 0) {
+      await updateConnectionStatus();
+    }
+  }
+}
+
+async function updateConnectionStatus() {
+  if (!window.ethereum) {
+    return;
+  }
+
+  const ethereumProviderHandler = new EthereumProviderHandler(window.ethereum);
+  const accounts = (await ethereumProviderHandler.sendRequest("eth_accounts")) as string[];
+  const selectedAccount = accounts[0];
+
+  setWalletAddress(selectedAccount);
+  console.log("Connected account:", selectedAccount);
+  //   connectWalletButton.disabled = true;
+  connectWalletButton.setAttribute("data-connected-wallet", selectedAccount);
+}
+
+// Listen for account changes
+if (window.ethereum) {
+  window.ethereum.on("accountsChanged", async (accounts: string[]) => {
+    if (accounts.length === 0) {
+      // User disconnected their wallet
+      setWalletAddress(null);
+      //   connectWalletButton.disabled = false;
+      connectWalletButton.removeAttribute("data-connected-wallet");
+    } else {
+      // User switched accounts
+      await updateConnectionStatus();
+    }
+  });
+}
+
+const walletEventEmitter = new EventTarget();
+
+// Setter for wallet address
+export function setWalletAddress(address: string | null): void {
+  walletAddress = address;
+  walletEventEmitter.dispatchEvent(new CustomEvent("walletAddressChanged", { detail: address }));
+}
+
+// Getter for wallet address
+export function getWalletAddress(): string | null {
+  return walletAddress;
+}
+
+// Subscribe to wallet address changes
+export function subscribeToWalletChanges(callback: (address: string | null) => void): void {
+  walletEventEmitter.addEventListener("walletAddressChanged", ((event: CustomEvent) => {
+    callback(event.detail);
+  }) as EventListener);
+}
+
+// Unsubscribe from wallet address changes
+export function unsubscribeFromWalletChanges(callback: (address: string | null) => void): void {
+  walletEventEmitter.removeEventListener("walletAddressChanged", callback as EventListener);
+}

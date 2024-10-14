@@ -17,7 +17,7 @@ export class EthereumProviderHandler {
     return this._nextPayloadId++;
   }
 
-  public async sendRequest(method: string, params: unknown[]): Promise<unknown> {
+  public async sendRequest(method: string, params = [] as unknown[]): Promise<unknown> {
     const payload = {
       jsonrpc: "2.0",
       method: method,
