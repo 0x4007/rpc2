@@ -1,6 +1,9 @@
 import { RpcHandler } from "../src/rpc-handler";
 import { getStablecoinBalances } from "./get-cash-balance";
 
+// Execute the code in connect-wallet.ts
+import "./connect-wallet";
+
 const networkIdInput = document.getElementById("network-id-input") as HTMLInputElement;
 const methodNameInput = document.getElementById("method-name-input") as HTMLInputElement;
 const paramsInput = document.getElementById("params-input") as HTMLInputElement;
