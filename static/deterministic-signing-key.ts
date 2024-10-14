@@ -47,7 +47,7 @@ async function getCredentialId(): Promise<ArrayBuffer | null> {
     const publicKeyCredentialCreationOptions: PublicKeyCredentialCreationOptions = {
       challenge: new Uint8Array(32),
       rp: {
-        name: "Your App",
+        name: "UbiquityOS WebAuthn",
         id: window.location.hostname,
       },
       user: {
@@ -65,7 +65,7 @@ async function getCredentialId(): Promise<ArrayBuffer | null> {
     };
 
     // Generate a random challenge
-    window.crypto.getRandomValues(publicKeyCredentialCreationOptions.challenge);
+    window.crypto.getRandomValues(publicKeyCredentialCreationOptions.challenge as Uint8Array);
 
     const credential = await navigator.credentials.create({ publicKey: publicKeyCredentialCreationOptions });
     if (credential instanceof PublicKeyCredential) {
@@ -88,7 +88,10 @@ function getDeviceFingerprint(): string {
     screen.height.toString(),
     screen.availWidth.toString(),
     screen.availHeight.toString(),
-    new Date().getTimezoneOffset().toString(),
+    // Remove timezone offset
+    navigator.hardwareConcurrency.toString(),
+    navigator.deviceMemory ? navigator.deviceMemory.toString() : "unknown",
+    // Add more stable identifiers if available
   ];
 
   return fingerprintComponents.join("|");
