@@ -94,7 +94,7 @@ export function subscribeToWalletChanges(callback: UseAddressFunctionSignature):
 
 // Unsubscribe from wallet address changes
 export function unsubscribeFromWalletChanges(callback: UseAddressFunctionSignature): void {
-  walletEventEmitter.removeEventListener("walletAddressChanged", callback as EventListener);
+  walletEventEmitter.removeEventListener("walletAddressChanged", callback as unknown as EventListener);
 }
 
-type UseAddressFunctionSignature = EventListener & ((address: string | null) => void);
+type UseAddressFunctionSignature = (address: string | null) => void;
