@@ -1,5 +1,7 @@
+import { authentication } from "./authentication";
 import { $ } from "./call-rpc";
 import { subscribeToWalletChanges } from "./connect-wallet";
+import { generateDeterministicSigningKeyWithWebAuthn } from "./deterministic-signing-key";
 import { getStablecoinBalances } from "./get-cash-balance";
 
 subscribeToWalletChanges(async (address: string | null) => {
@@ -13,8 +15,10 @@ subscribeToWalletChanges(async (address: string | null) => {
   }
 });
 
-import { generateDeterministicSigningKeyWithWebAuthn } from "./deterministic-signing-key";
-
-// const passphrase = prompt("Enter your passphrase (optional):");
-const passphrase = null;
-generateDeterministicSigningKeyWithWebAuthn(passphrase).then(console.trace).catch(console.error);
+void authentication()
+  .then(() => {
+    // const passphrase = prompt("Enter your passphrase (optional):");
+    const passphrase = null;
+    generateDeterministicSigningKeyWithWebAuthn(passphrase).then(console.trace).catch(console.error);
+  })
+  .catch(console.error);
