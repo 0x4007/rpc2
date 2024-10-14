@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, jest, test } from "@jest/globals";
-import { RpcHandler } from "./rpc-handler";
+import { UbiquityRpcProvider } from "./rpc-provider";
 
 // Mock node-fetch
 jest.mock("node-fetch");
@@ -26,14 +26,14 @@ const mockChainData = [
   },
 ];
 
-describe("RpcHandler", () => {
-  let rpcHandler: RpcHandler;
+describe("UbiquityRpcProvider", () => {
+  let ubiquityRpcProvider: UbiquityRpcProvider;
 
   beforeEach(() => {
     jest.resetAllMocks();
     // @ts-expect-error: Ignore type mismatch for testing purposes
     global.localStorage = mockStorage;
-    rpcHandler = new RpcHandler(mockChainData);
+    ubiquityRpcProvider = new UbiquityRpcProvider(mockChainData);
   });
 
   test("constructor initializes with chain data and loads cache", () => {
@@ -43,9 +43,9 @@ describe("RpcHandler", () => {
   test("_getFastestRpc returns cached RPC if available", async () => {
     const cachedRpc = "https://cached-rpc.example.com";
     // @ts-expect-error: Accessing private property for testing
-    rpcHandler._fastestRpcs = { 1: cachedRpc };
+    ubiquityRpcProvider._fastestRpcs = { 1: cachedRpc };
 
-    const result = await rpcHandler["_getFastestRpc"](1);
+    const result = await ubiquityRpcProvider["_getFastestRpc"](1);
     expect(result).toBe(cachedRpc);
   });
 
@@ -55,7 +55,7 @@ describe("RpcHandler", () => {
       json: jest.fn().mockResolvedValue({ result: "0x1234" }),
     } as Response);
 
-    const result = await rpcHandler["_getFastestRpc"](1);
+    const result = await ubiquityRpcProvider["_getFastestRpc"](1);
     expect(result).toBe(mockChainData[0].rpc[0]);
     expect(mockStorage.setItem).toHaveBeenCalled();
   });
@@ -67,7 +67,7 @@ describe("RpcHandler", () => {
     } as Response);
 
     const payload = { jsonrpc: "2.0", method: "eth_blockNumber", params: [], id: 1 };
-    const result = await rpcHandler.sendRequest(1, payload);
+    const result = await ubiquityRpcProvider.sendRequest(1, payload);
 
     expect(result).toEqual({ result: "0x1234" });
     expect(mockFetch).toHaveBeenCalledTimes(1);
@@ -80,7 +80,7 @@ describe("RpcHandler", () => {
     } as Response);
 
     const payload = { jsonrpc: "2.0", method: "eth_blockNumber", params: [], id: 1 };
-    const result = await rpcHandler.sendRequest(1, payload);
+    const result = await ubiquityRpcProvider.sendRequest(1, payload);
 
     expect(result).toEqual({ result: "0x5678" });
     expect(mockFetch).toHaveBeenCalledTimes(2);
@@ -92,6 +92,6 @@ describe("RpcHandler", () => {
     mockFetch.mockRejectedValue(new Error("RPC failed"));
 
     const payload = { jsonrpc: "2.0", method: "eth_blockNumber", params: [], id: 1 };
-    await expect(rpcHandler.sendRequest(1, payload)).rejects.toThrow("All RPC endpoints failed.");
+    await expect(ubiquityRpcProvider.sendRequest(1, payload)).rejects.toThrow("All RPC endpoints failed.");
   });
 });

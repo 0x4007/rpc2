@@ -1,6 +1,5 @@
-import { RpcHandler } from "../src/rpc-handler";
-
-const rpcHandler = new RpcHandler();
+import { UbiquityRpcProvider } from "../src/rpc-provider";
+const ubiquityRpcProvider = new UbiquityRpcProvider();
 const chainId = 1; // Ethereum mainnet
 
 interface StablecoinInfo {
@@ -34,9 +33,9 @@ async function getTokenBalance(tokenAddress: string, userAddress: string): Promi
   };
 
   try {
-    const response = await rpcHandler.sendRequest(chainId, payload);
+    const response = await ubiquityRpcProvider.sendRequest(chainId, payload);
     if (response.result && response.result !== "0x") {
-      return BigInt(response.result);
+      return BigInt(response.result as string);
     }
     return BigInt(0);
   } catch (error) {

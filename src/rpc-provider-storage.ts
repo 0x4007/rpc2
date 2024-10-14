@@ -1,4 +1,4 @@
-import { StorageInterface } from "./rpc-handler-types";
+import { StorageInterface } from "./rpc-provider-types";
 
 // Browser storage implementation
 export class BrowserStorage implements StorageInterface {

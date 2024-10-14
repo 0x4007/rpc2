@@ -1,6 +1,6 @@
 import type { EthereumProvider } from "./ethereum-provider";
 
-export class EthereumProviderHandler {
+export class UbiquityEthereumProvider {
   private _nextPayloadId = 1;
 
   constructor(private _ethereumProvider: EthereumProvider) {

@@ -1,13 +1,13 @@
 import { createHash } from "crypto";
-import { RpcHandler } from "../src/rpc-handler";
+import { UbiquityRpcProvider } from "./rpc-provider";
 
 export class ContractInteraction {
-  private _rpcHandler: RpcHandler;
+  private _rpcProvider: UbiquityRpcProvider;
   private _chainId: number;
   private _contractAddress: string;
 
-  constructor(rpcHandler: RpcHandler, chainId: number, contractAddress: string) {
-    this._rpcHandler = rpcHandler;
+  constructor(ubiquityRpcProvider: UbiquityRpcProvider, chainId: number, contractAddress: string) {
+    this._rpcProvider = ubiquityRpcProvider;
     this._chainId = chainId;
     this._contractAddress = contractAddress;
   }
@@ -217,7 +217,7 @@ export class ContractInteraction {
     };
 
     try {
-      const response = await this._rpcHandler.sendRequest(this._chainId, payload);
+      const response = await this._rpcProvider.sendRequest(this._chainId, payload);
       if (response.result && response.result !== "0x") {
         const decodedResult = this._decodeParameters(outputs, response.result as string);
         return decodedResult.length === 1 ? decodedResult[0] : decodedResult;

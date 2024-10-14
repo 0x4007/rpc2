@@ -1,9 +1,9 @@
 import chains from "./fixtures/chains.json";
-import { BrowserStorage, NodeStorage, isBrowser } from "./rpc-handler-storage";
-import { ChainData, JsonRpcResponse, StorageInterface } from "./rpc-handler-types";
 import permit2Bytecode from "./fixtures/permit2-bytecode-13995";
+import { BrowserStorage, NodeStorage, isBrowser } from "./rpc-provider-storage";
+import { ChainData, JsonRpcResponse, StorageInterface } from "./rpc-provider-types";
 
-export class RpcHandler {
+export class UbiquityRpcProvider {
   private _chainData = chains as ChainData[];
   private _storage: StorageInterface;
   private _fastestRpcs: { [chainId: number]: string } = {};

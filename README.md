@@ -1,6 +1,6 @@
-# `@0x4007/rpc-provider`
+# `@0x4007/ubiquity-rpc-provider`
 
-`RpcHandler` is a TypeScript class designed to efficiently manage RPC (Remote Procedure Call) endpoints across various blockchain networks. It intelligently selects the fastest available RPC endpoint for a given chain, caches endpoints for performance optimization, and gracefully handles request failures by retrying with alternative endpoints.
+`UbiquityRpcProvider` is a TypeScript class designed to efficiently manage RPC (Remote Procedure Call) endpoints across various blockchain networks. It intelligently selects the fastest available RPC endpoint for a given chain, caches endpoints for performance optimization, and gracefully handles request failures by retrying with alternative endpoints.
 
 ## Features
 
@@ -16,16 +16,16 @@
 Install the package using the `bun` package manager:
 
 ```bash
-bun add @0x4007/rpc-provider
+bun add @0x4007/ubiquity-rpc-provider
 ```
 
 ## Usage
 
 ```typescript
-import { RpcHandler } from "@0x4007/rpc-provider";
+import { UbiquityRpcProvider } from "@0x4007/ubiquity-rpc-provider";
 
-// Initialize the RpcHandler
-const rpcHandler = new RpcHandler();
+// Initialize the UbiquityRpcProvider
+const ubiquityRpcProvider = new UbiquityRpcProvider();
 
 // Define your RPC request payload
 const payload = {
@@ -34,7 +34,8 @@ const payload = {
 };
 
 // Send the RPC request
-rpcHandler.sendRequest(1, payload)
+ubiquityRpcProvider
+  .sendRequest(1, payload)
   .then((response) => {
     console.log("Block Number:", response.result);
   })
@@ -45,12 +46,12 @@ rpcHandler.sendRequest(1, payload)
 
 ## API Reference
 
-### `RpcHandler`
+### `UbiquityRpcProvider`
 
 #### Constructor
 
 ```typescript
-new RpcHandler(chainData?: ChainData[])
+new UbiquityRpcProvider(chainData?: ChainData[])
 ```
 
 - **Parameters**:
@@ -75,11 +76,11 @@ Sends an RPC request to the fastest available endpoint for the specified chain I
 
 ### Automatic Failover
 
-If a request to the fastest RPC fails, the `RpcHandler` automatically tries alternative RPC endpoints for the same chain.
+If a request to the fastest RPC fails, the `UbiquityRpcProvider` automatically tries alternative RPC endpoints for the same chain.
 
 ### Latency Checking
 
-The `RpcHandler` performs latency checks to determine the fastest RPC endpoint for each chain. It uses a test payload to verify the endpoint's responsiveness and correctness.
+The `UbiquityRpcProvider` performs latency checks to determine the fastest RPC endpoint for each chain. It uses a test payload to verify the endpoint's responsiveness and correctness.
 
 ### Caching
 

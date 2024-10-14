@@ -1,4 +1,4 @@
-import { EthereumProviderHandler } from "../src/ethereum-provider-handler";
+import { UbiquityEthereumProvider } from "../src/ethereum-provider-handler";
 
 let walletAddress: string | null = null;
 
@@ -38,7 +38,7 @@ async function disconnectWallet() {
 
 async function checkExistingConnection() {
   if (typeof window.ethereum !== "undefined") {
-    const ethereumProviderHandler = new EthereumProviderHandler(window.ethereum);
+    const ethereumProviderHandler = new UbiquityEthereumProvider(window.ethereum);
     const accounts = (await ethereumProviderHandler.sendRequest("eth_accounts")) as string[];
 
     if (accounts.length > 0) {
@@ -52,7 +52,7 @@ async function updateConnectionStatus() {
     return;
   }
 
-  const ethereumProviderHandler = new EthereumProviderHandler(window.ethereum);
+  const ethereumProviderHandler = new UbiquityEthereumProvider(window.ethereum);
   const accounts = (await ethereumProviderHandler.sendRequest("eth_accounts")) as string[];
   const selectedAccount = accounts[0];
 
@@ -88,13 +88,11 @@ export function getWalletAddress(): string | null {
 }
 
 // Subscribe to wallet address changes
-export function subscribeToWalletChanges(callback: (address: string | null) => void): void {
-  walletEventEmitter.addEventListener("walletAddressChanged", ((event: CustomEvent) => {
-    callback(event.detail);
-  }) as EventListener);
+export function subscribeToWalletChanges(callback: (event: CustomEvent<string | null>) => void): void {
+  walletEventEmitter.addEventListener("walletAddressChanged", callback as EventListener);
 }
 
 // Unsubscribe from wallet address changes
-export function unsubscribeFromWalletChanges(callback: (address: string | null) => void): void {
+export function unsubscribeFromWalletChanges(callback: (event: CustomEvent<string | null>) => void): void {
   walletEventEmitter.removeEventListener("walletAddressChanged", callback as EventListener);
 }
