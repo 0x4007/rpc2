@@ -1,6 +1,7 @@
 import { ec as EC } from "elliptic";
 import { keccak256 } from "js-sha3";
 import { getGitHubUser } from "./getters/get-github-user";
+import { displayPopupMessage } from "./rendering/display-popup-modal";
 
 const ec = new EC("secp256k1");
 
@@ -9,6 +10,13 @@ export async function generateDeterministicSigningKeyWithWebAuthn(passphrase?: s
   publicKey: string;
   address: string;
 }> {
+  displayPopupMessage({
+    modalHeader: "WebAuthn Signer",
+    modalBody: "You will be prompted to unlock your wallet. Please use your device's authentication method.",
+    isError: false,
+    // url : null
+  });
+
   const credentialId = await getCredentialId();
   const deviceEntropy = credentialId ? bufferToHex(credentialId) : getDeviceFingerprint();
   const combined = passphrase ? `${deviceEntropy}|${passphrase}` : deviceEntropy;
@@ -47,7 +55,7 @@ async function getCredentialId(): Promise<ArrayBuffer | null> {
     const publicKeyCredentialCreationOptions: PublicKeyCredentialCreationOptions = {
       challenge: new Uint8Array(32),
       rp: {
-        name: "UbiquityOS WebAuthn",
+        name: "UbiquityOS WebAuthn Signer",
         id: window.location.hostname,
       },
       user: {
