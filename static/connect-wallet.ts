@@ -88,8 +88,8 @@ export function getWalletAddress(): string | null {
 }
 
 // Subscribe to wallet address changes
-export function subscribeToWalletChanges(callback: UseAddressFunctionSignature): void {
-  walletEventEmitter.addEventListener("walletAddressChanged", ((event: CustomEvent) => callback(event.detail)) as EventListener);
+export function subscribeToWalletChanges(callback: (address: string | null) => void): void {
+  walletEventEmitter.addEventListener("walletAddressChanged", ((event: CustomEvent) => callback(event.detail as string)) as EventListener);
 }
 
 // Unsubscribe from wallet address changes
