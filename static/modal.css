@@ -1,0 +1,147 @@
+:root {
+  --modal-max-width: 640px;
+}
+.preview {
+  text-align: left;
+  position: fixed;
+  transition: 0.25s all cubic-bezier(0, 1, 1, 1);
+  max-width: var(--modal-max-width);
+  border: 1px solid #80808020;
+  border-radius: 4px;
+  opacity: 0;
+  top: 60px;
+  pointer-events: none;
+  width: calc(100vw - 14px);
+  right: 8px;
+  background-color: #000;
+}
+
+.preview * {
+  pointer-events: none;
+}
+
+.preview.active * {
+  pointer-events: all;
+}
+
+.preview.active {
+  opacity: 1;
+  pointer-events: all;
+  transform: translateX(-50%);
+}
+
+.preview-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 16px;
+}
+
+.preview-header > a {
+  word-wrap: initial;
+  text-decoration: none;
+  opacity: 0.75;
+  display: flex;
+  justify-content: right;
+  align-items: center;
+  width: calc(100% - 72px);
+}
+
+.preview-header > a:hover {
+  opacity: 1;
+}
+
+.preview-header > a > h1 {
+  word-wrap: initial;
+  word-break: normal;
+  display: inline;
+  vertical-align: middle;
+  margin-right: 12px;
+  text-align: right;
+  font-size: 20px;
+  text-align: right;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.preview-body {
+  overflow: scroll;
+  margin: 0;
+  border-top: 1px solid #202020;
+  padding: 16px;
+  max-height: calc(100vh - (80px));
+  max-height: calc(100vh - (242px));
+}
+
+.preview-content {
+  width: 100%;
+}
+
+.preview button.close-preview {
+  right: 0;
+  top: 0;
+  margin-right: 8px;
+  padding: 8px 8px;
+  border: none;
+  background: 0 0;
+  padding: 0;
+}
+
+.preview button.close-preview:hover svg {
+  fill: #fff;
+}
+
+.preview-body-inner {
+  line-height: 1.25;
+}
+
+.preview-body-inner > :last-child {
+  margin-bottom: 0;
+}
+
+.close-preview svg {
+  fill: #ffffff80;
+  vertical-align: middle;
+  height: 36px;
+}
+
+.preview .preview-header a[href*="//"] svg
+{
+  fill: #ffffff80;
+  vertical-align: middle;
+  height: 20px;
+}
+
+.preview.active.error .preview-header > a {
+  pointer-events: none;
+}
+
+.preview.active.error .preview-header > a .open-new-link {
+  display: none;
+}
+
+.preview.active.error > div > div.preview-header > a > span.error {
+  display: unset;
+}
+
+.preview.active > div > div.preview-header > a > span.error {
+  display: none;
+}
+
+@media screen and (max-width: 1280px) {
+  body.preview-active {
+    overflow: hidden;
+  }
+  .preview.active {
+    transform: translateX(0) !important;
+  }
+  body.preview-active #issues-container {
+    transform: translateX(0) !important;
+  }
+  body.preview-active > #issues-container > div,
+  body.preview-active > background {
+    filter: blur(8px);
+    pointer-events: none;
+  }
+}
